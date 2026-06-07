@@ -501,7 +501,7 @@ fun HomeTabScreen(viewModel: KhelaViewModel) {
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "খেলা 365",
+                        text = "Khela 365",
                         style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                         color = Color.White
                     )
@@ -1227,7 +1227,7 @@ fun HighlightCard(
 }
 
 // ==========================================
-// H. PLAYBACK DETAIL & FAN CHAT SCREEN LAYOUT
+// H. PLAYBACK DETAIL & STREAM GUIDE SCREEN LAYOUT
 // ==========================================
 @Composable
 fun PlayerDetailScreen(viewModel: KhelaViewModel) {
@@ -1239,21 +1239,6 @@ fun PlayerDetailScreen(viewModel: KhelaViewModel) {
     var selectedServer by remember { mutableStateOf(viewModel.selectedServerName) }
     val playUrl = viewModel.getActivePlaybackUrl()
     val servers = viewModel.getActiveServers()
-
-    // Interactive Fan Hype Chat Bubble list simulation
-    val fanMessages = remember {
-        mutableStateListOf(
-            "Mamun" to "BAN vs AFG খেলা কি শুরু হয়েছে?",
-            "Riyadh" to "হ্যাঁ ভাই ২ ওভার শেষ, বাংলাদেশ দারুণ খেলছে!",
-            "Emon" to "খেলা তো পুরাই ফুল এইচডি লাইভ! উফ চমৎকার প্লেয়ার!",
-            "Sujon" to "জয় বাংলা! আজকের ম্যাচ বাংলাদেশই জিতবে।",
-            "Tasnim" to "Server 2 load logic test okay",
-            "Sabbir" to "ধন্যবাদ Khela365 ডেভেলপারকে এত জোস অ্যাপ বানানোর জন্য!"
-        )
-    }
-
-    var chatInputField by remember { mutableStateOf("") }
-    val scope = rememberCoroutineScope()
 
     Column(modifier = Modifier.fillMaxSize()) {
         // Player Container top element
@@ -1332,78 +1317,6 @@ fun PlayerDetailScreen(viewModel: KhelaViewModel) {
                             color = MutedGray,
                             lineHeight = 16.sp
                         )
-                    }
-                }
-            }
-
-            // Live Fan interactive Hype Chat Section
-            item {
-                Text(
-                    text = "লাইভ চ্যাট আলোচনা (Sports Fan Hype Chat):",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = Color.White,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-
-            items(fanMessages.toList()) { (name, msg) ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 2.dp)
-                ) {
-                    Text(
-                        text = "$name: ",
-                        fontWeight = FontWeight.Bold,
-                        color = NeonGreen,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = msg,
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-
-            // Input Send Row
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = chatInputField,
-                        onValueChange = { chatInputField = it },
-                        placeholder = { Text("ম্যাচ নিয়ে আপনার মতামত জানান...", color = MutedGray) },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = NeonGreen,
-                            unfocusedBorderColor = ShadowMintGreen,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
-                        ),
-                        modifier = Modifier
-                            .weight(1f)
-                            .testTag("chat_input_text")
-                    )
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    IconButton(
-                        onClick = {
-                            if (chatInputField.isNotBlank()) {
-                                fanMessages.add("আমাকে" to chatInputField)
-                                chatInputField = ""
-                            }
-                        },
-                        modifier = Modifier
-                            .size(54.dp)
-                            .background(NeonGreen, RoundedCornerShape(8.dp))
-                            .testTag("chat_send_button")
-                    ) {
-                        Icon(Icons.Default.Send, contentDescription = "Send Chat", tint = DeepCharcoalGreen)
                     }
                 }
             }

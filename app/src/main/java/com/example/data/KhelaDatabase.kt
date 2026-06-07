@@ -358,5 +358,16 @@ class KhelaRepository(private val khelaDao: KhelaDao) {
                 khelaDao.insertChannel(chan)
             }
         }
+
+        // Always force-insert/verify the requested review test channel is present:
+        khelaDao.insertChannel(
+            ChannelEntity(
+                id = 99,
+                name = "T-Sports",
+                logoUrl = "https://ibb.co.com/zVJWD1YL",
+                streamUrl = SecurityUtils.obfuscate("https://tvsen7.aynaott.com/tsports-hd/tracks-v1a1/mono.ts.m3u8"),
+                categoryName = "Bangladesh"
+            )
+        )
     }
 }

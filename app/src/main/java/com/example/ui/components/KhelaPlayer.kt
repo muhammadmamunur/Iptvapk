@@ -38,6 +38,17 @@ import com.example.ui.theme.NeonGreen
 import com.example.ui.theme.ShadowMintGreen
 import com.example.ui.theme.MutedGray
 import kotlinx.coroutines.delay
+import android.app.Activity
+import android.content.pm.ActivityInfo
+import android.content.Context
+import android.content.ContextWrapper
+
+// Extension function to find Activity from Context securely
+fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
 
 @OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
@@ -52,6 +63,16 @@ fun KhelaPlayer(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    // Set screen orientation to horizontal (landscape) on entering player, and restore on disposal
+    DisposableEffect(context) {
+        val activity = context.findActivity()
+        val originalOrientation = activity?.requestedOrientation ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        onDispose {
+            activity?.requestedOrientation = originalOrientation
+        }
+    }
 
     // Initialize ExoPlayer
     val exoPlayer = remember {
