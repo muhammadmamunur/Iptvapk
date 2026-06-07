@@ -5,7 +5,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.AppSettingsEntity
 import com.example.data.ChannelEntity
-import com.example.data.KhelaDatabase
 import com.example.data.KhelaRepository
 import com.example.data.MatchEntity
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,8 +15,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class KhelaViewModel(application: Application) : AndroidViewModel(application) {
-    private val database = KhelaDatabase.getDatabase(application)
-    private val repository = KhelaRepository(database.khelaDao())
+    private val repository = KhelaRepository(application)
 
     // Reactive database data flows
     val allMatches: StateFlow<List<MatchEntity>> = repository.allMatches

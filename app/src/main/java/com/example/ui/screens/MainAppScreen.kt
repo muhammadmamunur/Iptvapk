@@ -43,12 +43,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.example.data.AppSettingsEntity
 import com.example.data.ChannelEntity
 import com.example.data.MatchEntity
 import com.example.ui.components.KhelaPlayer
+import com.example.ui.components.KhelaAsyncImage
 import com.example.ui.theme.DeepCharcoalGreen
 import com.example.ui.theme.MutedGray
 import com.example.ui.theme.NeonGreen
@@ -178,23 +181,14 @@ fun SplashScreenLayout() {
                     )
                 }
 
-                // Custom Sports Vector graphic mockup inside ring
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Default.SportsCricket,
-                        contentDescription = "Cricket Logo",
-                        tint = NeonGreen,
-                        modifier = Modifier.size(44.dp)
-                    )
-                    Text(
-                        text = "KHELA",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 2.sp
-                        ),
-                        color = Color.White
-                    )
-                }
+                // Custom Sports branding logo inside ring
+                Image(
+                    painter = painterResource(id = com.example.R.drawable.img_khela_logo_1780836302084),
+                    contentDescription = "Khela 365 Logo",
+                    modifier = Modifier
+                        .size(90.dp)
+                        .clip(CircleShape)
+                )
             }
 
             Spacer(modifier = Modifier.height(28.dp))
@@ -711,12 +705,12 @@ fun LiveMatchGridCard(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.weight(1f)
                 ) {
-                    AsyncImage(
+                    KhelaAsyncImage(
                         model = match.team1Logo,
                         contentDescription = match.team1Name,
                         contentScale = ContentScale.Fit,
                         modifier = Modifier
-                            .size(44.dp)
+                            .size(48.dp)
                             .clip(CircleShape)
                             .background(DeepCharcoalGreen)
                             .padding(4.dp),
@@ -762,12 +756,12 @@ fun LiveMatchGridCard(
                         textAlign = TextAlign.End
                     )
                     Spacer(modifier = Modifier.width(10.dp))
-                    AsyncImage(
+                    KhelaAsyncImage(
                         model = match.team2Logo,
                         contentDescription = match.team2Name,
                         contentScale = ContentScale.Fit,
                         modifier = Modifier
-                            .size(44.dp)
+                            .size(48.dp)
                             .clip(CircleShape)
                             .background(DeepCharcoalGreen)
                             .padding(4.dp),
@@ -946,12 +940,12 @@ fun CategoriesTabScreen(viewModel: KhelaViewModel) {
                                     .padding(12.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                AsyncImage(
+                                KhelaAsyncImage(
                                     model = channel.logoUrl,
                                     contentDescription = channel.name,
                                     contentScale = ContentScale.Fit,
                                     modifier = Modifier
-                                        .size(60.dp)
+                                        .size(72.dp)
                                         .clip(RoundedCornerShape(8.dp))
                                         .background(DeepCharcoalGreen)
                                         .padding(4.dp),
@@ -1126,11 +1120,11 @@ fun UpcomingMatchCard(match: MatchEntity) {
             ) {
                 // Team 1
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1.0f)) {
-                    AsyncImage(
+                    KhelaAsyncImage(
                         model = match.team1Logo,
                         contentDescription = match.team1Name,
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(48.dp)
                             .clip(CircleShape)
                             .background(DeepCharcoalGreen)
                             .padding(4.dp)
@@ -1145,11 +1139,11 @@ fun UpcomingMatchCard(match: MatchEntity) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End, modifier = Modifier.weight(1.0f)) {
                     Text(text = match.team2Name, color = Color.White, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.End)
                     Spacer(modifier = Modifier.width(8.dp))
-                    AsyncImage(
+                    KhelaAsyncImage(
                         model = match.team2Logo,
                         contentDescription = match.team2Name,
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(48.dp)
                             .clip(CircleShape)
                             .background(DeepCharcoalGreen)
                             .padding(4.dp)
