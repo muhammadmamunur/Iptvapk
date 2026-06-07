@@ -23,22 +23,52 @@ object ImgDbResolver {
         cache[url]?.let { return@withContext it }
         
         try {
-            val connection = URL(url).openConnection() as HttpURLConnection
-            connection.requestMethod = "GET"
-            connection.connectTimeout = 3000
-            connection.readTimeout = 3000
-            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-            
-            if (connection.responseCode == 200) {
-                val pageContent = connection.inputStream.bufferedReader().use { it.readText() }
-                val match = """<meta property="og:image" content="([^"]+)"""".toRegex().find(pageContent)
-                    ?: """<meta name="twitter:image" content="([^"]+)"""".toRegex().find(pageContent)
-                    ?: """<link rel="image_src" href="([^"]+)"""".toRegex().find(pageContent)
-                if (match != null) {
-                    val directUrl = match.groupValues[1]
-                    cache[url] = directUrl
-                    return@withContext directUrl
+            var currentUrl = url
+            var redirects = 0
+            while (redirects < 5) {
+                val connection = URL(currentUrl).openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+                connection.connectTimeout = 4000
+                connection.readTimeout = 4000
+                connection.instanceFollowRedirects = true
+                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                
+                val status = connection.responseCode
+                if (status == HttpURLConnection.HTTP_MOVED_TEMP || 
+                    status == HttpURLConnection.HTTP_MOVED_PERM || 
+                    status == 307 || 
+                    status == 308) {
+                    val location = connection.getHeaderField("Location")
+                    if (location != null) {
+                        currentUrl = if (location.startsWith("/")) {
+                            val baseUri = URL(currentUrl)
+                            "${baseUri.protocol}://${baseUri.host}$location"
+                        } else {
+                            location
+                        }
+                        redirects++
+                        continue
+                    }
                 }
+                
+                if (status == 200) {
+                    val pageContent = connection.inputStream.bufferedReader().use { it.readText() }
+                    val match = """<meta property="og:image" content="([^"]+)"""".toRegex().find(pageContent)
+                        ?: """<meta name="twitter:image" content="([^"]+)"""".toRegex().find(pageContent)
+                        ?: """<link rel="image_src" href="([^"]+)"""".toRegex().find(pageContent)
+                        ?: """<img\s+[^>]*src="([^"]+)"[^>]*id="image-viewer-container"""".toRegex().find(pageContent)
+                        ?: """image\s*:\s*\{\s*url\s*:\s*"([^"]+)"""".toRegex().find(pageContent)
+                        
+                    if (match != null) {
+                        var directUrl = match.groupValues[1]
+                        if (directUrl.startsWith("//")) {
+                            directUrl = "https:" + directUrl
+                        }
+                        cache[url] = directUrl
+                        return@withContext directUrl
+                    }
+                }
+                break
             }
         } catch (e: Exception) {
             e.printStackTrace()

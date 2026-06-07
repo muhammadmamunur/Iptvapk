@@ -203,6 +203,7 @@ fun KhelaPlayer(
                     PlayerView(ctx).apply {
                         player = exoPlayer
                         useController = false // Force custom controls
+                        resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FILL
                         layoutParams = FrameLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT

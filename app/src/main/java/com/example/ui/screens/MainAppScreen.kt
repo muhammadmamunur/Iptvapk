@@ -185,8 +185,12 @@ fun SplashScreenLayout() {
                 Image(
                     painter = painterResource(id = com.example.R.drawable.img_khela_logo_1780836302084),
                     contentDescription = "Khela 365 Logo",
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                     modifier = Modifier
                         .size(90.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .padding(3.dp)
                         .clip(CircleShape)
                 )
             }
@@ -480,19 +484,17 @@ fun HomeTabScreen(viewModel: KhelaViewModel) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Box(
+                    Image(
+                        painter = painterResource(id = com.example.R.drawable.img_khela_logo_1780836302084),
+                        contentDescription = "Khela 365 Logo",
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                         modifier = Modifier
-                            .size(28.dp)
-                            .background(NeonGreen, RoundedCornerShape(6.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "365",
-                            color = DeepCharcoalGreen,
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.ExtraBold)
-                        )
-                    }
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(Color.White)
+                            .padding(2.dp)
+                            .clip(CircleShape)
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Khela 365",

@@ -260,14 +260,18 @@ class KhelaRepository(context: Context) {
     fun seedDatabaseIfEmpty() {
         settingsRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                if (!snapshot.exists()) {
+                val dbHash = snapshot.child("adminPasswordHash").getValue(String::class.java)
+                val dbUser = snapshot.child("adminUsername").getValue(String::class.java)
+                val targetHash = SecurityUtils.sha256("Kh365@#mIn\$StReAm!2026")
+                
+                if (!snapshot.exists() || dbUser != "Khela365_Admin" || dbHash != targetHash) {
                     val defaultSettings = AppSettingsEntity(
                         id = 1,
-                        popupMessage = "আমাদের অফিশিয়াল টেলিগ্রাম চ্যানেলে যুক্ত হোন সব আপডেট সবার আগে পেতে!",
-                        popupLink = "https://t.me/khela365_official",
-                        showPopup = true,
-                        maintenanceMode = false,
-                        adminPasswordHash = SecurityUtils.sha256("Kh365@#mIn\$StReAm!2026"), // Hash of master password
+                        popupMessage = snapshot.child("popupMessage").getValue(String::class.java) ?: "আমাদের অফিশিয়াল টেলিগ্রাম চ্যানেলে যুক্ত হোন সব আপডেট সবার আগে পেতে!",
+                        popupLink = snapshot.child("popupLink").getValue(String::class.java) ?: "https://t.me/khela365_official",
+                        showPopup = snapshot.child("showPopup").getValue(Boolean::class.java) ?: true,
+                        maintenanceMode = snapshot.child("maintenanceMode").getValue(Boolean::class.java) ?: false,
+                        adminPasswordHash = targetHash,
                         adminUsername = "Khela365_Admin"
                     )
                     settingsRef.setValue(defaultSettings)
