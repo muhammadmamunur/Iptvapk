@@ -98,7 +98,7 @@ class KhelaViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Handles admin authentication with BCrypt/SHA-256 and Brute Force defense
-    fun loginAdmin(password: String): Boolean {
+    fun loginAdmin(username: String, password: String): Boolean {
         val curTime = System.currentTimeMillis()
         if (_cooldownActiveUntil.value > curTime) {
             return false // Lockout active
@@ -107,7 +107,7 @@ class KhelaViewModel(application: Application) : AndroidViewModel(application) {
         val settings = appSettings.value ?: return false
         val inputHash = com.example.data.SecurityUtils.sha256(password)
         
-        if (inputHash == settings.adminPasswordHash) {
+        if (username == settings.adminUsername && inputHash == settings.adminPasswordHash) {
             _isAdminAuthenticated.value = true
             sessionLoginTimeMs = System.currentTimeMillis()
             _failedAttempts.value = 0
@@ -262,7 +262,7 @@ class KhelaViewModel(application: Application) : AndroidViewModel(application) {
             val hashToSave = if (newPasswordPlain.isNotBlank()) {
                 com.example.data.SecurityUtils.sha256(newPasswordPlain)
             } else {
-                currentSettings?.adminPasswordHash ?: "a93b4d668fc455988e0b68a0a9b88e178ebfdeef06cc6f600e00f8f844bf83ce"
+                currentSettings?.adminPasswordHash ?: "fccd36c9233ff8f6bc06a38ecef4ac3dbe04085e7a9e34a06cd1ab7289eeac66"
             }
             repository.updateSettings(
                 AppSettingsEntity(
@@ -271,7 +271,8 @@ class KhelaViewModel(application: Application) : AndroidViewModel(application) {
                     popupLink = popupLink,
                     showPopup = showPopup,
                     maintenanceMode = maintenanceMode,
-                    adminPasswordHash = hashToSave
+                    adminPasswordHash = hashToSave,
+                    adminUsername = currentSettings?.adminUsername ?: "Khela365_Admin"
                 )
             )
         }

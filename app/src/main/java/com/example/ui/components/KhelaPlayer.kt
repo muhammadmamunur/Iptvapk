@@ -7,6 +7,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -24,6 +25,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
@@ -81,8 +84,37 @@ fun KhelaPlayer(
         }
     }
 
+    var playerError by remember { mutableStateOf<String?>(null) }
+    var isBuffering by remember { mutableStateOf(false) }
+
+    // Register Player Listener for real-time error and buffering status tracking
+    DisposableEffect(exoPlayer) {
+        val listener = object : androidx.media3.common.Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                isBuffering = playbackState == androidx.media3.common.Player.STATE_BUFFERING
+                if (playbackState == androidx.media3.common.Player.STATE_READY) {
+                    playerError = null
+                }
+            }
+
+            override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                val cause = error.cause
+                playerError = if (cause is java.io.IOException || error.errorCodeName.contains("NETWORK", ignoreCase = true)) {
+                    "নেটওয়ার্ক সংযোগ দুর্বল অথবা অফলাইন!"
+                } else {
+                    "স্ট্রীম অফলাইন অথবা লিঙ্কটি সাময়িকভাবে উপলব্ধ নেই!"
+                }
+            }
+        }
+        exoPlayer.addListener(listener)
+        onDispose {
+            exoPlayer.removeListener(listener)
+        }
+    }
+
     // Set source whenever stream URL changes
     LaunchedEffect(videoUrl) {
+        playerError = null
         val mediaItem = MediaItem.Builder()
             .setUri(videoUrl)
             .setMimeType(MimeTypes.APPLICATION_M3U8)
@@ -100,7 +132,10 @@ fun KhelaPlayer(
                     exoPlayer.pause()
                 }
                 Lifecycle.Event.ON_RESUME -> {
-                    exoPlayer.play()
+                    // Check if player has errors before automatically playing
+                    if (playerError == null) {
+                        exoPlayer.play()
+                    }
                 }
                 else -> {}
             }
@@ -141,8 +176,7 @@ fun KhelaPlayer(
     // Outer surface
     Box(
         modifier = modifier
-            .fillMaxWidth()
-            .aspectRatio(16f / 9f)
+            .fillMaxSize()
             .background(Color.Black)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
@@ -480,6 +514,85 @@ fun KhelaPlayer(
                     tint = Color.Red,
                     modifier = Modifier.size(16.dp)
                 )
+            }
+        }
+
+        // 4. Buffering status spinner overlay
+        if (isBuffering && playerError == null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    color = NeonGreen,
+                    strokeWidth = 3.dp,
+                    modifier = Modifier.size(42.dp)
+                )
+            }
+        }
+
+        // 5. Network loss / offline custom error presentation overlay
+        if (playerError != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.88f))
+                    .clickable(enabled = true, onClick = {}), // intercept click
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(24.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = "Error Icon",
+                        tint = Color.Red,
+                        modifier = Modifier.size(52.dp)
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = playerError!!,
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                playerError = null
+                                exoPlayer.prepare()
+                                exoPlayer.play()
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = NeonGreen,
+                                contentColor = DeepCharcoalGreen
+                            ),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = "Retry", modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("পুনরায় চেষ্টা করুন", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+                        }
+
+                        OutlinedButton(
+                            onClick = onBack,
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = Color.White
+                            ),
+                            border = BorderStroke(1.dp, Color.White),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("ফিরে যান", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+                        }
+                    }
+                }
             }
         }
     }

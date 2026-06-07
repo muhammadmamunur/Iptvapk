@@ -1240,7 +1240,7 @@ fun PlayerDetailScreen(viewModel: KhelaViewModel) {
     val playUrl = viewModel.getActivePlaybackUrl()
     val servers = viewModel.getActiveServers()
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         // Player Container top element
         KhelaPlayer(
             videoUrl = playUrl,
@@ -1251,76 +1251,9 @@ fun PlayerDetailScreen(viewModel: KhelaViewModel) {
                 selectedServer = server
                 viewModel.selectedServerName = server
             },
-            onBack = { viewModel.navigateTo("home") }
+            onBack = { viewModel.navigateTo("home") },
+            modifier = Modifier.fillMaxSize()
         )
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .background(DeepCharcoalGreen)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Stream metadata block
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = activeTitle,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Text(
-                            text = "লাইভ স্ট্রিমিং স্পিড: এ+ প্রিমিয়াম স্পিড",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = NeonGreen
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .background(NeonGreen.copy(alpha = 0.12f), CircleShape)
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Text(
-                            text = "1080p Auto",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = NeonGreen,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
-
-            // Sub details description block
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = ShadowMintGreen)
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Info, contentDescription = "Alert", tint = NeonGreen, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(text = "সহায়তা কেন্দ্র (Stream Guide)", color = Color.White, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "ভিডিওতে কোনো ধরনের বাফারিং হলে অনুগ্রহ করে ওপরের [সার্ভার সিলেকশন বার] থেকে অন্য কোনো বিকল্প সার্ভার বা সাব-অডিও লিঙ্ক সিলেক্ট করুন। হাই-স্পিড ৩জি/৪জি ইন্টারনেট সংযোগ ব্যবহার করুন চমৎকার অভিজ্ঞতার জন্য।",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MutedGray,
-                            lineHeight = 16.sp
-                        )
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -1340,6 +1273,7 @@ fun AdminPanelScreen(viewModel: KhelaViewModel) {
     val cooldownActiveUntil by viewModel.cooldownActiveUntil.collectAsState()
 
     var showPassword by remember { mutableStateOf(false) }
+    var usernameInputField by remember { mutableStateOf("") }
     var passwordInputField by remember { mutableStateOf("") }
     var loginErrorText by remember { mutableStateOf<String?>(null) }
 
@@ -1440,14 +1374,39 @@ fun AdminPanelScreen(viewModel: KhelaViewModel) {
                     }
                 }
 
+                // Completely clean administrative Username text field
+                OutlinedTextField(
+                    value = usernameInputField,
+                    onValueChange = {
+                        usernameInputField = it
+                        loginErrorText = null
+                    },
+                    label = { Text("এডমিন ইউজারনেম") },
+                    singleLine = true,
+                    enabled = !isLockedOut,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = NeonGreen,
+                        unfocusedBorderColor = DeepCharcoalGreen,
+                        focusedLabelColor = NeonGreen,
+                        unfocusedLabelColor = MutedGray,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                        .testTag("admin_login_username_field")
+                )
+
+                // Safe and clean password input field (fully blank without leakages)
                 OutlinedTextField(
                     value = passwordInputField,
                     onValueChange = { 
                         passwordInputField = it
                         loginErrorText = null
                     },
-                    label = { Text("মাস্টার সিক্রেট পাসওয়ার্ড লিখুন") },
-                    placeholder = { Text("Default: admin365") },
+                    label = { Text("মাস্টার সিক্রেট পাসওয়ার্ড") },
                     singleLine = true,
                     enabled = !isLockedOut,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -1528,9 +1487,14 @@ fun AdminPanelScreen(viewModel: KhelaViewModel) {
 
                     Button(
                         onClick = {
-                            if (passwordInputField.isNotBlank()) {
-                                val success = viewModel.loginAdmin(passwordInputField)
+                            if (usernameInputField.isBlank()) {
+                                loginErrorText = "ইউজারনেম ইনপুট দিন!"
+                            } else if (passwordInputField.isBlank()) {
+                                loginErrorText = "পাসওয়ার্ড ইনপুট দিন!"
+                            } else {
+                                val success = viewModel.loginAdmin(usernameInputField, passwordInputField)
                                 if (success) {
+                                    usernameInputField = ""
                                     passwordInputField = ""
                                     loginErrorText = null
                                 } else {
@@ -1539,11 +1503,9 @@ fun AdminPanelScreen(viewModel: KhelaViewModel) {
                                         loginErrorText = "লগইন লক ডাউনলোড! ১ মিনিট অপেক্ষা করুন।"
                                     } else {
                                         val remaining = 5 - failedAttempts
-                                        loginErrorText = "ভুল পাসওয়ার্ড! আপনার আর $remaining বার সুযোগ আছে।"
+                                        loginErrorText = "ভুল ইউজারনেম অথবা পাসওয়ার্ড! আর $remaining বার সুযোগ আছে।"
                                     }
                                 }
-                            } else {
-                                loginErrorText = "পাসওয়ার্ড ইনপুট দিন!"
                             }
                         },
                         enabled = !isLockedOut,
@@ -1941,16 +1903,53 @@ fun AdminPanelAndForms(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(ShadowMintGreen, RoundedCornerShape(8.dp))
-                            .padding(12.dp),
+                            .background(ShadowMintGreen, RoundedCornerShape(12.dp))
+                            .border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(12.dp))
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = "${match.team1Name} vs ${match.team2Name} [${match.status}]", color = Color.White)
-                        IconButton(
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = match.title,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                color = Color.White
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .background(if (match.status == "live") Color.Red else MutedGray, CircleShape)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "${match.team1Name} vs ${match.team2Name} [${match.status.uppercase()}]",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MutedGray
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Button(
                             onClick = { viewModel.deleteMatch(match.id) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Red,
+                                contentColor = Color.White
+                            ),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.height(34.dp).testTag("delete_match_btn_${match.id}")
                         ) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete Match", tint = Color.Red)
+                            Icon(
+                                imageVector = Icons.Default.HighlightOff,
+                                contentDescription = "Finish Match",
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(text = "Finish", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
                         }
                     }
                 }

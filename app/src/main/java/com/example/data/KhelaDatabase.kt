@@ -88,7 +88,8 @@ data class AppSettingsEntity(
     val popupLink: String,
     val showPopup: Boolean,
     val maintenanceMode: Boolean,
-    val adminPasswordHash: String = "a93b4d668fc455988e0b68a0a9b88e178ebfdeef06cc6f600e00f8f844bf83ce" // SHA-256 hash representation of "admin365"
+    val adminPasswordHash: String = "fccd36c9233ff8f6bc06a38ecef4ac3dbe04085e7a9e34a06cd1ab7289eeac66", // SHA-256 hash representation of "Kh365@#mIn$StReAm!2026"
+    val adminUsername: String = "Khela365_Admin"
 )
 
 // ==========================================
@@ -150,7 +151,7 @@ interface KhelaDao {
 // 3. ROOM DATABASE CLASS
 // ==========================================
 
-@Database(entities = [MatchEntity::class, ChannelEntity::class, AppSettingsEntity::class], version = 1, exportSchema = false)
+@Database(entities = [MatchEntity::class, ChannelEntity::class, AppSettingsEntity::class], version = 3, exportSchema = false)
 abstract class KhelaDatabase : RoomDatabase() {
     abstract fun khelaDao(): KhelaDao
 
@@ -210,7 +211,8 @@ class KhelaRepository(private val khelaDao: KhelaDao) {
                     popupLink = "https://t.me/khela365_official",
                     showPopup = true,
                     maintenanceMode = false,
-                    adminPasswordHash = "a93b4d668fc455988e0b68a0a9b88e178ebfdeef06cc6f600e00f8f844bf83ce" // default "admin365"
+                    adminPasswordHash = SecurityUtils.sha256("Kh365@#mIn\$StReAm!2026"), // Hash of new master password
+                    adminUsername = "Khela365_Admin"
                 )
             )
         }
