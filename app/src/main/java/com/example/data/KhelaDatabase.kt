@@ -125,15 +125,15 @@ class KhelaRepository(context: Context) {
     val appSettings: Flow<AppSettingsEntity?> = _appSettings
 
     init {
+        val dbUrl = try {
+            BuildConfig.FIREBASE_DATABASE_URL
+        } catch (e: Exception) {
+            ""
+        }.ifBlank { "https://khela365-live-default-rtdb.firebaseio.com/" }
+
         // Programmatic Firebase Setup to dynamically bind the credentials at Runtime
         try {
             if (FirebaseApp.getApps(context).isEmpty()) {
-                val dbUrl = try {
-                    BuildConfig.FIREBASE_DATABASE_URL
-                } catch (e: Exception) {
-                    ""
-                }.ifBlank { "https://khela365-live-default-rtdb.firebaseio.com/" }
-
                 val options = FirebaseOptions.Builder()
                     .setApplicationId("1:60f0cfde5b484d44b909329a874a74c4:android:debug")
                     .setProjectId("khela-365-live")
@@ -145,7 +145,12 @@ class KhelaRepository(context: Context) {
             Log.e("FirebaseSetup", "Error during dynamic Firebase bootstrapping", e)
         }
 
-        database = FirebaseDatabase.getInstance()
+        database = try {
+            FirebaseDatabase.getInstance(dbUrl)
+        } catch (e: Exception) {
+            Log.e("FirebaseSetup", "Failed to initialize with secure dbUrl, falling back to default", e)
+            FirebaseDatabase.getInstance()
+        }
         matchesRef = database.getReference("matches")
         channelsRef = database.getReference("channels")
         settingsRef = database.getReference("app_settings")
