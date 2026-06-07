@@ -1,0 +1,6 @@
+{
+  "name": "Khela365",
+  "description": "Luxurious shadow green dark themed IPTV & Live Sports Streaming Player with multi-server support and dynamic control.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
