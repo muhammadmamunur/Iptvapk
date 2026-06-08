@@ -87,7 +87,8 @@ data class AppSettingsEntity(
     val showPopup: Boolean = false,
     val maintenanceMode: Boolean = false,
     val adminPasswordHash: String = "fccd36c9233ff8f6bc06a38ecef4ac3dbe04085e7a9e34a06cd1ab7289eeac66", // SHA-256 hash representation of "Kh365@#mIn$StReAm!2026"
-    val adminUsername: String = "Khela365_Admin"
+    val adminUsername: String = "Khela365_Admin",
+    val adminEmails: String = "muhammadmamunur02@gmail.com"
 )
 
 // ==========================================
@@ -277,7 +278,8 @@ class KhelaRepository(context: Context) {
                         showPopup = snapshot.child("showPopup").getValue(Boolean::class.java) ?: true,
                         maintenanceMode = snapshot.child("maintenanceMode").getValue(Boolean::class.java) ?: false,
                         adminPasswordHash = targetHash,
-                        adminUsername = "Khela365_Admin"
+                        adminUsername = "Khela365_Admin",
+                        adminEmails = snapshot.child("adminEmails").getValue(String::class.java) ?: "muhammadmamunur02@gmail.com"
                     )
                     settingsRef.setValue(defaultSettings)
                 }

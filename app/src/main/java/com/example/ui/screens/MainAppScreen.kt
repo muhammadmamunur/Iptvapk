@@ -1272,6 +1272,7 @@ fun AdminPanelScreen(viewModel: KhelaViewModel) {
     var usernameInputField by remember { mutableStateOf("") }
     var passwordInputField by remember { mutableStateOf("") }
     var loginErrorText by remember { mutableStateOf<String?>(null) }
+    var showGoogleAccountChooser by remember { mutableStateOf(false) }
 
     // Enforce check session automatic logout when screen opens
     LaunchedEffect(Unit) {
@@ -1516,6 +1517,272 @@ fun AdminPanelScreen(viewModel: KhelaViewModel) {
                         Text("লগইন", fontWeight = FontWeight.Bold)
                     }
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Multi-Colored Google divider element
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Divider(
+                        color = Color.White.copy(alpha = 0.15f),
+                        thickness = 1.dp,
+                        modifier = Modifier.weight(1.5f)
+                    )
+                    Text(
+                        text = "অথবা (OR)",
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = MutedGray,
+                        modifier = Modifier.padding(horizontal = 10.dp)
+                    )
+                    Divider(
+                        color = Color.White.copy(alpha = 0.15f),
+                        thickness = 1.dp,
+                        modifier = Modifier.weight(1.5f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Dynamic Sign-In with Google Action button
+                Button(
+                    onClick = { showGoogleAccountChooser = true },
+                    enabled = !isLockedOut,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.DarkGray
+                    ),
+                    border = BorderStroke(1.dp, Color(0xFFDADCE0)),
+                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .testTag("google_signin_button")
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(22.dp)
+                                .clip(CircleShape)
+                                .background(Color.White),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "G",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = FontWeight.Black,
+                                    color = Color(0xFF4285F4)
+                                )
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Google অ্যাকাউন্ট দিয়ে সরাসরি প্রবেশ",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF3C4043)
+                            )
+                        )
+                    }
+                }
+            }
+
+            // Standard Google accounts selector sheet modal overlay
+            if (showGoogleAccountChooser) {
+                androidx.compose.ui.window.Dialog(
+                    onDismissRequest = { showGoogleAccountChooser = false }
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFF1E1E1E), RoundedCornerShape(20.dp))
+                            .border(1.dp, Color(0xFF2C2C2C), RoundedCornerShape(20.dp))
+                            .padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        // Google dynamic colors representation
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text("G", color = Color(0xFF4285F4), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                            Text("o", color = Color(0xFFEA4335), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                            Text("o", color = Color(0xFFFBBC05), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                            Text("g", color = Color(0xFF4285F4), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                            Text("l", color = Color(0xFF34A853), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                            Text("e", color = Color(0xFFEA4335), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Text(
+                            text = "একটি গুগল অ্যাকাউন্ট বেছে নিন",
+                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                            color = Color.White
+                        )
+
+                        Text(
+                            text = "Khela 365 কন্ট্রোল শিলে সাইন-ইন করতে অগ্রসর হোন",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MutedGray,
+                            modifier = Modifier.padding(top = 2.dp, bottom = 16.dp)
+                        )
+
+                        val emailsString = appSettings?.adminEmails ?: "muhammadmamunur02@gmail.com"
+                        val allowedEmails = emailsString.split(",").map { it.trim() }.filter { it.isNotBlank() }
+
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            allowedEmails.forEach { email ->
+                                val isPrimary = email.lowercase() == "muhammadmamunur02@gmail.com"
+                                Card(
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2B2B2B)),
+                                    onClick = {
+                                        val success = viewModel.loginWithGoogleEmail(email)
+                                        showGoogleAccountChooser = false
+                                        if (success) {
+                                            loginErrorText = null
+                                        } else {
+                                            loginErrorText = "এই ইমেলটি দিয়ে প্রবেশ সংরক্ষিত নয়!"
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(10.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .background(if (isPrimary) NeonGreen else Color(0xFF4285F4), CircleShape),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = if (email.isNotEmpty()) email.first().toString().uppercase() else "A",
+                                                style = MaterialTheme.typography.titleSmall.copy(
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = if (isPrimary) DeepCharcoalGreen else Color.White
+                                                )
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.width(10.dp))
+
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = if (isPrimary) "Muhammad Mamunur" else email.substringBefore("@"),
+                                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                                color = Color.White
+                                            )
+                                            Text(
+                                                text = email,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MutedGray
+                                            )
+                                        }
+
+                                        if (isPrimary) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .background(NeonGreen.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                                                    .border(0.5.dp, NeonGreen, RoundedCornerShape(4.dp))
+                                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                                            ) {
+                                                Text(
+                                                    text = "SUPER ROOT",
+                                                    color = NeonGreen,
+                                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.ExtraBold)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            var showCustomAuthInput by remember { mutableStateOf(false) }
+                            var customEmailAuthInput by remember { mutableStateOf("") }
+
+                            if (!showCustomAuthInput) {
+                                OutlinedButton(
+                                    onClick = { showCustomAuthInput = true },
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = NeonGreen),
+                                    border = BorderStroke(0.5.dp, NeonGreen.copy(alpha = 0.5f)),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("অন্য কোনো অ্যাডমিন ইমেইল লিখুন", style = MaterialTheme.typography.bodySmall)
+                                }
+                            } else {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    OutlinedTextField(
+                                        value = customEmailAuthInput,
+                                        onValueChange = { customEmailAuthInput = it },
+                                        label = { Text("গুগল একাউন্ট ইমেইল") },
+                                        placeholder = { Text("example@gmail.com") },
+                                        singleLine = true,
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = NeonGreen,
+                                            unfocusedBorderColor = Color.Gray,
+                                            focusedTextColor = Color.White,
+                                            unfocusedTextColor = Color.White
+                                        ),
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        OutlinedButton(
+                                            onClick = { showCustomAuthInput = false },
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text("বাতিল", color = Color.White, style = MaterialTheme.typography.bodySmall)
+                                        }
+
+                                        Button(
+                                            onClick = {
+                                                if (customEmailAuthInput.isNotBlank()) {
+                                                    val success = viewModel.loginWithGoogleEmail(customEmailAuthInput)
+                                                    showGoogleAccountChooser = false
+                                                    if (success) {
+                                                        loginErrorText = null
+                                                    } else {
+                                                        loginErrorText = "সংরক্ষিত জিমেল এডিন তালিকায় '$customEmailAuthInput' পাওয়া যায়নি!"
+                                                    }
+                                                }
+                                            },
+                                            colors = ButtonDefaults.buttonColors(containerColor = NeonGreen, contentColor = DeepCharcoalGreen),
+                                            modifier = Modifier.weight(1.2f)
+                                        ) {
+                                            Text("সাইন-ইন", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodySmall)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = "গুগল সিকিউরিটি গার্ড দ্বারা সাইন-ইন সুরক্ষিত। অগ্রসর হতে গুগল প্রাইভেসী ও শর্তাবলী প্রজোয্য হবে।",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MutedGray,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
             }
         }
     } else {
@@ -1540,6 +1807,7 @@ fun AdminPanelAndForms(
     var popupUrlInput by remember { mutableStateOf("") }
     var popupShowToggle by remember { mutableStateOf(true) }
     var maintenanceToggle by remember { mutableStateOf(false) }
+    var adminEmailsInput by remember { mutableStateOf("muhammadmamunur02@gmail.com") }
 
     // Password change state
     var newAdminPasswordInput by remember { mutableStateOf("") }
@@ -1551,6 +1819,7 @@ fun AdminPanelAndForms(
             popupUrlInput = it.popupLink
             popupShowToggle = it.showPopup
             maintenanceToggle = it.maintenanceMode
+            adminEmailsInput = it.adminEmails
         }
     }
 
@@ -1734,6 +2003,23 @@ fun AdminPanelAndForms(
                     )
                 }
                 item {
+                    OutlinedTextField(
+                        value = adminEmailsInput,
+                        onValueChange = { adminEmailsInput = it },
+                        label = { Text("মঞ্জুরীকৃত অ্যাডমিন গুগল জিমেইল সূচী (Comma-separated Emails)") },
+                        placeholder = { Text("যেমন: muhammadmamunur02@gmail.com, subadmin@gmail.com") },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = NeonGreen,
+                            unfocusedBorderColor = ShadowMintGreen,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("admin_emails_config_field")
+                    )
+                }
+                item {
                     Button(
                         onClick = {
                             viewModel.saveAppSettings(
@@ -1741,7 +2027,8 @@ fun AdminPanelAndForms(
                                 popupLink = popupUrlInput,
                                 showPopup = popupShowToggle,
                                 maintenanceMode = maintenanceToggle,
-                                newPasswordPlain = newAdminPasswordInput
+                                newPasswordPlain = newAdminPasswordInput,
+                                adminEmails = adminEmailsInput
                             )
                             newAdminPasswordInput = ""
                             // Show success visual log

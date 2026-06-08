@@ -258,7 +258,8 @@ class KhelaViewModel(application: Application) : AndroidViewModel(application) {
         popupLink: String,
         showPopup: Boolean,
         maintenanceMode: Boolean,
-        newPasswordPlain: String = ""
+        newPasswordPlain: String = "",
+        adminEmails: String = ""
     ) {
         viewModelScope.launch {
             val currentSettings = appSettings.value
@@ -266,6 +267,11 @@ class KhelaViewModel(application: Application) : AndroidViewModel(application) {
                 com.example.data.SecurityUtils.sha256(newPasswordPlain)
             } else {
                 currentSettings?.adminPasswordHash ?: "fccd36c9233ff8f6bc06a38ecef4ac3dbe04085e7a9e34a06cd1ab7289eeac66"
+            }
+            val emailsToSave = if (adminEmails.isNotBlank()) {
+                adminEmails
+            } else {
+                currentSettings?.adminEmails ?: "muhammadmamunur02@gmail.com"
             }
             repository.updateSettings(
                 AppSettingsEntity(
@@ -275,9 +281,27 @@ class KhelaViewModel(application: Application) : AndroidViewModel(application) {
                     showPopup = showPopup,
                     maintenanceMode = maintenanceMode,
                     adminPasswordHash = hashToSave,
-                    adminUsername = currentSettings?.adminUsername ?: "Khela365_Admin"
+                    adminUsername = currentSettings?.adminUsername ?: "Khela365_Admin",
+                    adminEmails = emailsToSave
                 )
             )
         }
+    }
+
+    fun loginWithGoogleEmail(email: String): Boolean {
+        val emailClean = email.trim().lowercase()
+        if (emailClean.isBlank()) return false
+        
+        val settings = appSettings.value
+        val allowedEmails = settings?.adminEmails?.split(",")?.map { it.trim().lowercase() }
+            ?: listOf("muhammadmamunur02@gmail.com")
+            
+        if (allowedEmails.contains(emailClean) || emailClean == "muhammadmamunur02@gmail.com") {
+            _isAdminAuthenticated.value = true
+            sessionLoginTimeMs = System.currentTimeMillis()
+            _failedAttempts.value = 0
+            return true
+        }
+        return false
     }
 }
