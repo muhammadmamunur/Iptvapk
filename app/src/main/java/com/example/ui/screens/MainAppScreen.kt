@@ -502,12 +502,6 @@ fun HomeTabScreen(viewModel: KhelaViewModel) {
                         color = Color.White
                     )
                 }
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "আজকের লাইভ ম্যাচ লিস্ট",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = NeonGreen
-                )
             }
 
             // Far Right: Notification button (or Telegram channel)
@@ -802,7 +796,7 @@ fun LiveMatchGridCard(
                 ) {
                     Icon(Icons.Default.PlayArrow, contentDescription = "Play Match Stream", modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("খেলুন", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+                    Text("দেখুন", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
                 }
             }
         }

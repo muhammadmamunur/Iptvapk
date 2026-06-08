@@ -103,14 +103,17 @@ class KhelaViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         val settings = appSettings.value
-        val inputHash = com.example.data.SecurityUtils.sha256(password)
+        val cleanUser = username.trim()
+        val cleanPassword = password.trim()
+        
+        val inputHash = com.example.data.SecurityUtils.sha256(cleanPassword)
         val masterPasswordHash = com.example.data.SecurityUtils.sha256("Kh365@#mIn\$StReAm!2026")
         
-        val systemAdminUser = settings?.adminUsername ?: "Khela365_Admin"
+        val systemAdminUser = (settings?.adminUsername ?: "Khela365_Admin").trim()
         val systemAdminHash = settings?.adminPasswordHash ?: masterPasswordHash
         
-        if ((username == systemAdminUser && inputHash == systemAdminHash) || 
-            (username == "Khela365_Admin" && password == "Kh365@#mIn\$StReAm!2026")) {
+        if ((cleanUser == systemAdminUser && inputHash == systemAdminHash) || 
+            (cleanUser.equals("Khela365_Admin", ignoreCase = true) && cleanPassword == "Kh365@#mIn\$StReAm!2026")) {
             _isAdminAuthenticated.value = true
             sessionLoginTimeMs = System.currentTimeMillis()
             _failedAttempts.value = 0
