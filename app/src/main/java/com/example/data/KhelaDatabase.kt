@@ -87,7 +87,7 @@ data class AppSettingsEntity(
     val showPopup: Boolean = false,
     val maintenanceMode: Boolean = false,
     val adminPasswordHash: String = "fccd36c9233ff8f6bc06a38ecef4ac3dbe04085e7a9e34a06cd1ab7289eeac66", // SHA-256 hash representation of "Kh365@#mIn$StReAm!2026"
-    val adminUsername: String = "Khela365_Admin",
+    val adminUsername: String = "KhelaGhor_Admin",
     val adminEmails: String = "muhammadmamunur02@gmail.com"
 )
 
@@ -270,7 +270,7 @@ class KhelaRepository(context: Context) {
                 val dbUser = snapshot.child("adminUsername").getValue(String::class.java)
                 val targetHash = SecurityUtils.sha256("Kh365@#mIn\$StReAm!2026")
                 
-                if (!snapshot.exists() || dbUser != "Khela365_Admin" || dbHash != targetHash) {
+                if (!snapshot.exists() || (dbUser != "KhelaGhor_Admin" && dbUser != "Khela365_Admin") || dbHash != targetHash) {
                     val defaultSettings = AppSettingsEntity(
                         id = 1,
                         popupMessage = snapshot.child("popupMessage").getValue(String::class.java) ?: "আমাদের অফিশিয়াল টেলিগ্রাম চ্যানেলে যুক্ত হোন সব আপডেট সবার আগে পেতে!",
@@ -278,7 +278,7 @@ class KhelaRepository(context: Context) {
                         showPopup = snapshot.child("showPopup").getValue(Boolean::class.java) ?: true,
                         maintenanceMode = snapshot.child("maintenanceMode").getValue(Boolean::class.java) ?: false,
                         adminPasswordHash = targetHash,
-                        adminUsername = "Khela365_Admin",
+                        adminUsername = "KhelaGhor_Admin",
                         adminEmails = snapshot.child("adminEmails").getValue(String::class.java) ?: "muhammadmamunur02@gmail.com"
                     )
                     settingsRef.setValue(defaultSettings)

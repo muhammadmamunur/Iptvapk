@@ -184,7 +184,7 @@ fun SplashScreenLayout() {
                 // Custom Sports branding logo inside ring
                 Image(
                     painter = painterResource(id = com.example.R.drawable.img_khela_logo_1780836302084),
-                    contentDescription = "Khela 365 Logo",
+                    contentDescription = "KhelaGhor Logo",
                     contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                     modifier = Modifier
                         .size(90.dp)
@@ -199,7 +199,7 @@ fun SplashScreenLayout() {
 
             // Branding Label
             Text(
-                text = "Khela365",
+                text = "KhelaGhor",
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
@@ -486,7 +486,7 @@ fun HomeTabScreen(viewModel: KhelaViewModel) {
                 ) {
                     Image(
                         painter = painterResource(id = com.example.R.drawable.img_khela_logo_1780836302084),
-                        contentDescription = "Khela 365 Logo",
+                        contentDescription = "KhelaGhor Logo",
                         contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                         modifier = Modifier
                             .size(32.dp)
@@ -497,7 +497,7 @@ fun HomeTabScreen(viewModel: KhelaViewModel) {
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Khela 365",
+                        text = "KhelaGhor",
                         style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                         color = Color.White
                     )
@@ -1330,7 +1330,7 @@ fun AdminPanelScreen(viewModel: KhelaViewModel) {
                 )
 
                 Text(
-                    text = "Khela 365 Control Shield",
+                    text = "KhelaGhor Control Shield",
                     style = MaterialTheme.typography.labelMedium,
                     color = NeonGreen,
                     letterSpacing = 1.5.sp,
@@ -1620,7 +1620,7 @@ fun AdminPanelScreen(viewModel: KhelaViewModel) {
                         )
 
                         Text(
-                            text = "Khela 365 কন্ট্রোল শিলে সাইন-ইন করতে অগ্রসর হোন",
+                            text = "KhelaGhor কন্ট্রোল শিলে সাইন-ইন করতে অগ্রসর হোন",
                             style = MaterialTheme.typography.bodySmall,
                             color = MutedGray,
                             modifier = Modifier.padding(top = 2.dp, bottom = 16.dp)
