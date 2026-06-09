@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0F172A">
+
+    <!-- Clean Header Layout (Icon-free, centered text, premium slate theme) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/headerCard"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        app:cardBackgroundColor="#1E293B"
+        app:cardElevation="4dp"
+        app:cardMaxElevation="0dp"
+        app:cardPreventCornerOverlap="false"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingHorizontal="16dp">
+
+            <TextView
+                android:id="@+id/headerTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:fontFamily="sans-serif-black"
+                android:letterSpacing="0.08"
+                android:text="KHELAGHOR"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Matches List RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewMatches"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:padding="8dp"
+        app:layout_constraintBottom_toTopOf="@id/bannerAdCard"
+        app:layout_constraintTop_toBottomOf="@id/headerCard"
+        tools:listitem="@layout/match_item" />
+
+    <!-- Premium Native Bottom Banner Ad Card Container -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/bannerAdCard"
+        android:layout_width="match_parent"
+        android:layout_height="65dp"
+        android:layout_margin="12dp"
+        app:cardBackgroundColor="#1E293B"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="6dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <FrameLayout
+            android:id="@+id/bannerAdContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <WebView
+                android:id="@+id/bannerWebView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone" />
+
+            <!-- Fallback Mock Banner Ad (When script is loading) -->
+            <RelativeLayout
+                android:id="@+id/fallbackBannerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#1E293B"
+                android:gravity="center"
+                android:padding="8dp">
+
+                <TextView
+                    android:id="@+id/adBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:background="#00FF66"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="3dp"
+                    android:text="SPONSOR"
+                    android:textColor="#0F172A"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="8dp"
+                    android:layout_toEndOf="@id/adBadge"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="Stream HD sports with Khelaghor premium hosts!"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp" />
+            </RelativeLayout>
+        </FrameLayout>
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

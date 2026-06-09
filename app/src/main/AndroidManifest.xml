@@ -28,6 +28,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <activity
+            android:name=".PlayerActivity"
+            android:exported="false"
+            android:hardwareAccelerated="true"
+            android:screenOrientation="sensorLandscape"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
+            android:theme="@style/Theme.MyApplication" />
     </application>
 
 </manifest>
