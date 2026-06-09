@@ -88,7 +88,11 @@ data class AppSettingsEntity(
     val maintenanceMode: Boolean = false,
     val adminPasswordHash: String = "fccd36c9233ff8f6bc06a38ecef4ac3dbe04085e7a9e34a06cd1ab7289eeac66", // SHA-256 hash representation of "Kh365@#mIn$StReAm!2026"
     val adminUsername: String = "KhelaGhor_Admin",
-    val adminEmails: String = "muhammadmamunur02@gmail.com"
+    val adminEmails: String = "muhammadmamunur02@gmail.com",
+    val showBannerAd: Boolean = false,
+    val bannerAdCode: String = "",
+    val showPopunderAd: Boolean = false,
+    val popunderAdCode: String = ""
 )
 
 // ==========================================

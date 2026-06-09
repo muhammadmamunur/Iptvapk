@@ -85,6 +85,26 @@ fun MainAppScreen(
         }
     }
 
+    // 3. Popunder Ad Redirection States
+    var showPopunderAdUrl by remember { mutableStateOf<String?>(null) }
+    var lastTriggeredPlaybackMatchId by remember { mutableStateOf<Int?>(null) }
+    var lastTriggeredPlaybackChannelId by remember { mutableStateOf<Int?>(null) }
+
+    LaunchedEffect(currentScreen, appSettings) {
+        if (currentScreen == "player" && appSettings?.showPopunderAd == true && appSettings?.popunderAdCode?.isNotBlank() == true) {
+            val currentMatchId = viewModel.activePlaybackMatch?.id
+            val currentChannelId = viewModel.activePlaybackChannel?.id
+            
+            if (currentMatchId != null && currentMatchId != lastTriggeredPlaybackMatchId) {
+                showPopunderAdUrl = appSettings?.popunderAdCode
+                lastTriggeredPlaybackMatchId = currentMatchId
+            } else if (currentChannelId != null && currentChannelId != lastTriggeredPlaybackChannelId) {
+                showPopunderAdUrl = appSettings?.popunderAdCode
+                lastTriggeredPlaybackChannelId = currentChannelId
+            }
+        }
+    }
+
     if (!isSplashComplete) {
         SplashScreenLayout()
     } else if (appSettings?.maintenanceMode == true && currentScreen != "admin") {
@@ -103,7 +123,8 @@ fun MainAppScreen(
                 }
             },
             containerColor = DeepCharcoalGreen,
-            modifier = modifier.fillMaxSize()
+            modifier = modifier.fillMaxSize(),
+            contentWindowInsets = WindowInsets(0, 0, 0, 0)
         ) { paddingValues ->
             Box(
                 modifier = Modifier
@@ -133,6 +154,14 @@ fun MainAppScreen(
                                 // Fallback
                             }
                         }
+                    )
+                }
+
+                // In-App Popunder Redirection & Anti-Exit Shield
+                if (showPopunderAdUrl != null) {
+                    PopunderAdFullScreenOverlay(
+                        adCode = showPopunderAdUrl!!,
+                        onDismiss = { showPopunderAdUrl = null }
                     )
                 }
             }
@@ -182,17 +211,21 @@ fun SplashScreenLayout() {
                 }
 
                 // Custom Sports branding logo inside ring
-                Image(
-                    painter = painterResource(id = com.example.R.drawable.img_khela_logo_1780836302084),
-                    contentDescription = "KhelaGhor Logo",
-                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                Box(
                     modifier = Modifier
                         .size(90.dp)
                         .clip(CircleShape)
-                        .background(Color.White)
-                        .padding(3.dp)
-                        .clip(CircleShape)
-                )
+                        .background(ShadowMintGreen)
+                        .border(3.dp, NeonGreen, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LiveTv,
+                        contentDescription = "KhelaGhor Logo",
+                        tint = NeonGreen,
+                        modifier = Modifier.size(50.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(28.dp))
@@ -398,7 +431,7 @@ fun KhelaBottomNavigation(
     NavigationBar(
         containerColor = ShadowMintGreen,
         tonalElevation = 8.dp,
-        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+        modifier = Modifier.fillMaxWidth()
     ) {
         NavigationBarItem(
             selected = currentTab == "home",
@@ -460,7 +493,8 @@ fun HomeTabScreen(viewModel: KhelaViewModel) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .statusBarsPadding()
+                .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp),
             contentAlignment = Alignment.Center
         ) {
             // Far Left: Admin button
@@ -484,17 +518,20 @@ fun HomeTabScreen(viewModel: KhelaViewModel) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Image(
-                        painter = painterResource(id = com.example.R.drawable.img_khela_logo_1780836302084),
-                        contentDescription = "KhelaGhor Logo",
-                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    Box(
                         modifier = Modifier
                             .size(32.dp)
                             .clip(CircleShape)
-                            .background(Color.White)
-                            .padding(2.dp)
-                            .clip(CircleShape)
-                    )
+                            .background(ShadowMintGreen),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.LiveTv,
+                            contentDescription = "KhelaGhor Logo",
+                            tint = NeonGreen,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "KhelaGhor",
@@ -520,7 +557,7 @@ fun HomeTabScreen(viewModel: KhelaViewModel) {
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(vertical = 12.dp)
+            modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
         ) {
             items(categories) { cat ->
                 val isSelected = selectedCategory == cat
@@ -596,6 +633,7 @@ fun HomeTabScreen(viewModel: KhelaViewModel) {
                 }
             }
         } else {
+            val settings = viewModel.appSettings.collectAsState().value
             LazyColumn(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -606,6 +644,11 @@ fun HomeTabScreen(viewModel: KhelaViewModel) {
                         match = match,
                         onCardClicked = { viewModel.selectMatchToPlay(match) }
                     )
+                    if (settings?.showBannerAd == true && settings.bannerAdCode.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        KhelaBannerAdView(adCode = settings.bannerAdCode)
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
             }
         }
@@ -819,7 +862,8 @@ fun CategoriesTabScreen(viewModel: KhelaViewModel) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .statusBarsPadding()
+                .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp),
             contentAlignment = Alignment.Center
         ) {
             if (activeCategorySelection != null) {
@@ -980,7 +1024,8 @@ fun UpcomingTabScreen(viewModel: KhelaViewModel) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .statusBarsPadding()
+                .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -1802,6 +1847,10 @@ fun AdminPanelAndForms(
     var popupShowToggle by remember { mutableStateOf(true) }
     var maintenanceToggle by remember { mutableStateOf(false) }
     var adminEmailsInput by remember { mutableStateOf("muhammadmamunur02@gmail.com") }
+    var showBannerAdToggle by remember { mutableStateOf(false) }
+    var bannerAdCodeInput by remember { mutableStateOf("") }
+    var showPopunderAdToggle by remember { mutableStateOf(false) }
+    var popunderAdCodeInput by remember { mutableStateOf("") }
 
     // Password change state
     var newAdminPasswordInput by remember { mutableStateOf("") }
@@ -1814,6 +1863,10 @@ fun AdminPanelAndForms(
             popupShowToggle = it.showPopup
             maintenanceToggle = it.maintenanceMode
             adminEmailsInput = it.adminEmails
+            showBannerAdToggle = it.showBannerAd
+            bannerAdCodeInput = it.bannerAdCode
+            showPopunderAdToggle = it.showPopunderAd
+            popunderAdCodeInput = it.popunderAdCode
         }
     }
 
@@ -2014,6 +2067,115 @@ fun AdminPanelAndForms(
                     )
                 }
                 item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = ShadowMintGreen.copy(alpha = 0.3f)),
+                        border = BorderStroke(1.dp, ShadowMintGreen.copy(alpha = 0.6f))
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = "বিজ্ঞাপন ও রেভিনিউ কন্ট্রোল (Advertisement Setup)",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = NeonGreen,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "এখানে আপনার ব্যানার ও পপ-আন্ডার রিডাইরেক্ট বিজ্ঞাপনের স্ক্রিপ্ট বা URL কোড সেট করুন। অ্যাডমিন সুইচ দিয়ে রিয়েল-টাইমে অ্যাড চালু বা বন্ধ করুন।",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.LightGray
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            // Banner ad toggle
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "ব্যানার বিজ্ঞাপন ইউনিট (728x90 Banner Ad)", 
+                                        color = Color.White, 
+                                        fontWeight = FontWeight.SemiBold, 
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Text(
+                                        text = "হোম পেজের কন্টেন্ট সেকশনে ব্যানার শো হবে", 
+                                        color = Color.Gray, 
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+                                Switch(
+                                    checked = showBannerAdToggle,
+                                    onCheckedChange = { showBannerAdToggle = it },
+                                    colors = SwitchDefaults.colors(checkedThumbColor = NeonGreen, checkedTrackColor = NeonGreen.copy(alpha = 0.5f))
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = bannerAdCodeInput,
+                                onValueChange = { bannerAdCodeInput = it },
+                                label = { Text("ব্যানার বিজ্ঞাপনের স্ক্রিপ্ট বা URL লিংক (Html / JS / Link)") },
+                                placeholder = { Text("যেমন: Adsterra iframe/script code অথবা direct link") },
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = NeonGreen,
+                                    unfocusedBorderColor = ShadowMintGreen.copy(alpha = 0.5f),
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White
+                                ),
+                                modifier = Modifier.fillMaxWidth(),
+                                maxLines = 5
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            // Popunder ad toggle
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "পপ-আন্ডার রিডাইরেক্ট বিজ্ঞাপন (Pop-Under Redirection)", 
+                                        color = Color.White, 
+                                        fontWeight = FontWeight.SemiBold, 
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Text(
+                                        text = "ইউজার এক্সটার্নাল বিজ্ঞাপনে রিডাইরেক্ট হবে ও প্রেস ব্যাক করলে সরাসরি আবার এই অ্যাপে ফিরে আসবে", 
+                                        color = Color.Gray, 
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+                                Switch(
+                                    checked = showPopunderAdToggle,
+                                    onCheckedChange = { showPopunderAdToggle = it },
+                                    colors = SwitchDefaults.colors(checkedThumbColor = NeonGreen, checkedTrackColor = NeonGreen.copy(alpha = 0.5f))
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = popunderAdCodeInput,
+                                onValueChange = { popunderAdCodeInput = it },
+                                label = { Text("পপ-আন্ডার বিজ্ঞাপন বা রিডাইরেক্ট স্ক্রিপ্ট লিংক") },
+                                placeholder = { Text("যেমন: Adsterra Popunder direct URL link") },
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = NeonGreen,
+                                    unfocusedBorderColor = ShadowMintGreen.copy(alpha = 0.5f),
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White
+                                ),
+                                modifier = Modifier.fillMaxWidth(),
+                                maxLines = 5
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+                item {
                     Button(
                         onClick = {
                             viewModel.saveAppSettings(
@@ -2022,7 +2184,11 @@ fun AdminPanelAndForms(
                                 showPopup = popupShowToggle,
                                 maintenanceMode = maintenanceToggle,
                                 newPasswordPlain = newAdminPasswordInput,
-                                adminEmails = adminEmailsInput
+                                adminEmails = adminEmailsInput,
+                                showBannerAd = showBannerAdToggle,
+                                bannerAdCode = bannerAdCodeInput,
+                                showPopunderAd = showPopunderAdToggle,
+                                popunderAdCode = popunderAdCodeInput
                             )
                             newAdminPasswordInput = ""
                             // Show success visual log
@@ -2315,6 +2481,164 @@ fun AdminPanelAndForms(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+// ==========================================
+// ADVERTISEMENT RENDERERS
+// ==========================================
+
+@Composable
+fun KhelaBannerAdView(adCode: String, modifier: Modifier = Modifier) {
+    if (adCode.isBlank()) return
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(90.dp)
+            .background(Color.Black)
+            .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(8.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        val cleanCode = adCode.trim()
+        val isUrl = cleanCode.startsWith("http://") || cleanCode.startsWith("https://")
+
+        androidx.compose.ui.viewinterop.AndroidView(
+            factory = { context ->
+                android.webkit.WebView(context).apply {
+                    settings.javaScriptEnabled = true
+                    settings.domStorageEnabled = true
+                    settings.useWideViewPort = true
+                    settings.loadWithOverviewMode = true
+                    setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                    webViewClient = object : android.webkit.WebViewClient() {
+                        override fun shouldOverrideUrlLoading(
+                            view: android.webkit.WebView?,
+                            request: android.webkit.WebResourceRequest?
+                        ): Boolean {
+                            val url = request?.url?.toString() ?: return false
+                            try {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                            return true
+                        }
+                    }
+                }
+            },
+            update = { webView ->
+                if (isUrl) {
+                    webView.loadUrl(cleanCode)
+                } else {
+                    val styledHtml = """
+                        <html>
+                        <head>
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+                        <style>
+                            body {
+                                margin: 0;
+                                padding: 0;
+                                background-color: transparent;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                width: 100%;
+                                height: 100%;
+                                overflow: hidden;
+                            }
+                            iframe, img, a {
+                                max-width: 100%;
+                                max-height: 100%;
+                            }
+                        </style>
+                        </head>
+                        <body>
+                            $cleanCode
+                        </body>
+                        </html>
+                    """.trimIndent()
+                    webView.loadDataWithBaseURL("https://khelaghor.com", styledHtml, "text/html", "UTF-8", null)
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+}
+
+@Composable
+fun PopunderAdFullScreenOverlay(
+    adCode: String,
+    onDismiss: () -> Unit
+) {
+    if (adCode.isBlank()) return
+
+    // Intercept physical Back press to safely bypass Chrome history exit-loop
+    // This allows returning straight back to the play screen inside our app!
+    androidx.activity.compose.BackHandler {
+        onDismiss()
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+    ) {
+        val cleanCode = adCode.trim()
+        val isUrl = cleanCode.startsWith("http://") || cleanCode.startsWith("https://")
+
+        androidx.compose.ui.viewinterop.AndroidView(
+            factory = { context ->
+                android.webkit.WebView(context).apply {
+                    settings.javaScriptEnabled = true
+                    settings.domStorageEnabled = true
+                    settings.useWideViewPort = true
+                    settings.loadWithOverviewMode = true
+                    settings.databaseEnabled = true
+                    settings.userAgentString = "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36"
+                    webViewClient = object : android.webkit.WebViewClient() {
+                        override fun shouldOverrideUrlLoading(
+                            view: android.webkit.WebView?,
+                            request: android.webkit.WebResourceRequest?
+                        ): Boolean {
+                            return false // normal page redirection within our web view
+                        }
+                    }
+                }
+            },
+            update = { webView ->
+                if (isUrl) {
+                    webView.loadUrl(cleanCode)
+                } else {
+                    webView.loadDataWithBaseURL("https://khelaghor.com", cleanCode, "text/html", "UTF-8", null)
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+
+        // Floating Close button on Top Right
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.End
+        ) {
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close Ad",
+                    tint = Color.White
+                )
             }
         }
     }

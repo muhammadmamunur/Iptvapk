@@ -172,9 +172,41 @@ fun KhelaPlayer(
     var touchLocked by remember { mutableStateOf(false) }
     var isPlaying by remember { mutableStateOf(true) }
     var isMuted by remember { mutableStateOf(false) }
-    var videoResizeMode by remember { mutableStateOf(1) } // Default to 1 (RESIZE_MODE_FILL)
+    var videoResizeMode by remember { mutableStateOf(0) } // Default to 0 (Aspect Fit)
     var activeQuality by remember { mutableStateOf("Auto") }
     var showQualityMenu by remember { mutableStateOf(false) }
+
+    // Dynamic HLS Resolution & Quality Constraint Linker
+    LaunchedEffect(activeQuality) {
+        val parametersBuilder = exoPlayer.trackSelectionParameters.buildUpon()
+        when (activeQuality) {
+            "1080p" -> {
+                parametersBuilder
+                    .setMaxVideoSize(1920, 1080)
+                    .setMaxVideoFrameRate(60)
+                    .setMaxVideoBitrate(10_000_000)
+                    .setForceHighestSupportedBitrate(true)
+            }
+            "720p" -> {
+                parametersBuilder
+                    .setMaxVideoSize(1280, 720)
+                    .setMaxVideoFrameRate(30)
+                    .setForceHighestSupportedBitrate(true)
+            }
+            "480p" -> {
+                parametersBuilder
+                    .setMaxVideoSize(854, 480)
+                    .setMaxVideoFrameRate(30)
+                    .setForceHighestSupportedBitrate(true)
+            }
+            else -> { // Auto
+                parametersBuilder
+                    .clearVideoSizeConstraints()
+                    .setForceHighestSupportedBitrate(false)
+            }
+        }
+        exoPlayer.trackSelectionParameters = parametersBuilder.build()
+    }
 
     // Auto-hide controls timer
     LaunchedEffect(showControls, touchLocked) {
@@ -215,7 +247,7 @@ fun KhelaPlayer(
                 PlayerView(ctx).apply {
                     player = exoPlayer
                     useController = false // Force custom controls
-                    resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FILL
+                    resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
                     layoutParams = FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
@@ -223,11 +255,11 @@ fun KhelaPlayer(
                 }
             },
             update = { playerView ->
-                // Handle resize/stretch mode
-                playerView.resizeMode = when (videoResizeMode) {
-                    1 -> androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FILL // BoxFit.fill (Stretch)
-                    2 -> androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM // BoxFit.cover (Zoom/Crop)
-                    else -> androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT // Standard Fit
+                // Toggle strictly between Fit and Zoom to prevent bent screen or faces stretching
+                playerView.resizeMode = if (videoResizeMode == 1) {
+                    androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM // Scale (Crop overflow, no stretching)
+                } else {
+                    androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT  // Contain (Original Ratio letterboxed)
                 }
             },
             modifier = Modifier.fillMaxSize()
@@ -396,7 +428,7 @@ fun KhelaPlayer(
                     IconButton(
                         onClick = {
                             if (!touchLocked) {
-                                videoResizeMode = (videoResizeMode + 1) % 3
+                                videoResizeMode = if (videoResizeMode == 0) 1 else 0
                             }
                         },
                         modifier = Modifier
@@ -406,10 +438,10 @@ fun KhelaPlayer(
                             .testTag("fullscreen_toggle_button")
                     ) {
                         Icon(
-                            imageVector = when (videoResizeMode) {
-                                1 -> Icons.Default.FullscreenExit  // Stretch / Fit Width
-                                2 -> Icons.Default.AspectRatio     // Zoom & Crop (Zoom Overflow)
-                                else -> Icons.Default.Fullscreen    // Aspect Fit Standard
+                            imageVector = if (videoResizeMode == 1) {
+                                Icons.Default.FullscreenExit  // Zoom / Fill Screen
+                            } else {
+                                Icons.Default.Fullscreen    // Standard Fit
                             },
                             contentDescription = "Toggle Screen Aspect Ratio",
                             tint = NeonGreen,

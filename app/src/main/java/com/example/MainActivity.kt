@@ -21,12 +21,10 @@ class MainActivity : ComponentActivity() {
     setContent {
       MyApplicationTheme {
         val viewModel: KhelaViewModel = viewModel()
-        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-          MainAppScreen(
-            viewModel = viewModel,
-            modifier = Modifier.padding(innerPadding)
-          )
-        }
+        MainAppScreen(
+          viewModel = viewModel,
+          modifier = Modifier.fillMaxSize()
+        )
       }
     }
   }

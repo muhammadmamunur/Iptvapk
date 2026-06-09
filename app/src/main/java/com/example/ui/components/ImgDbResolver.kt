@@ -101,3 +101,17 @@ fun KhelaAsyncImage(
         error = error
     )
 }
+
+fun preloadComposeImage(url: String, context: android.content.Context) {
+    try {
+        val imageLoader = coil.ImageLoader(context)
+        val request = coil.request.ImageRequest.Builder(context)
+            .data(url)
+            .diskCachePolicy(coil.request.CachePolicy.ENABLED)
+            .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
+            .build()
+        imageLoader.enqueue(request)
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}

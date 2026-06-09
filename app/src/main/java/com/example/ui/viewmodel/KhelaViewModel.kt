@@ -72,6 +72,41 @@ class KhelaViewModel(application: Application) : AndroidViewModel(application) {
             // Seeding sample live URLs, pop-ups & channels on startup
             repository.seedDatabaseIfEmpty()
         }
+
+        // Background Image Preloading & Direct URL Caching Engine
+        viewModelScope.launch {
+            allMatches.collect { matches ->
+                if (matches.isNotEmpty()) {
+                    matches.forEach { match ->
+                        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                            if (match.team1Logo.isNotBlank()) {
+                                val resolved = com.example.ui.components.ImgDbResolver.resolveDirectUrl(match.team1Logo)
+                                com.example.ui.components.preloadComposeImage(resolved, application)
+                            }
+                            if (match.team2Logo.isNotBlank()) {
+                                val resolved = com.example.ui.components.ImgDbResolver.resolveDirectUrl(match.team2Logo)
+                                com.example.ui.components.preloadComposeImage(resolved, application)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        viewModelScope.launch {
+            allChannels.collect { channels ->
+                if (channels.isNotEmpty()) {
+                    channels.forEach { channel ->
+                        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                            if (channel.logoUrl.isNotBlank()) {
+                                val resolved = com.example.ui.components.ImgDbResolver.resolveDirectUrl(channel.logoUrl)
+                                com.example.ui.components.preloadComposeImage(resolved, application)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // Toggle horizontal sport categories (All, Cricket, Football...)
@@ -263,7 +298,11 @@ class KhelaViewModel(application: Application) : AndroidViewModel(application) {
         showPopup: Boolean,
         maintenanceMode: Boolean,
         newPasswordPlain: String = "",
-        adminEmails: String = ""
+        adminEmails: String = "",
+        showBannerAd: Boolean = false,
+        bannerAdCode: String = "",
+        showPopunderAd: Boolean = false,
+        popunderAdCode: String = ""
     ) {
         viewModelScope.launch {
             val currentSettings = appSettings.value
@@ -286,7 +325,11 @@ class KhelaViewModel(application: Application) : AndroidViewModel(application) {
                     maintenanceMode = maintenanceMode,
                     adminPasswordHash = hashToSave,
                     adminUsername = currentSettings?.adminUsername ?: "KhelaGhor_Admin",
-                    adminEmails = emailsToSave
+                    adminEmails = emailsToSave,
+                    showBannerAd = showBannerAd,
+                    bannerAdCode = bannerAdCode,
+                    showPopunderAd = showPopunderAd,
+                    popunderAdCode = popunderAdCode
                 )
             )
         }
