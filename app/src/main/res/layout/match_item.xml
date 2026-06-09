@@ -1,164 +1,208 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="12dp"
+    android:layout_marginHorizontal="16dp"
     android:layout_marginVertical="8dp"
-    app:cardBackgroundColor="#1E293B"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="4dp">
+    android:background="@drawable/card_border_green"
+    android:padding="16dp">
 
+    <!-- Top Left Category Capsule Tag -->
+    <TextView
+        android:id="@+id/matchCategory"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/capsule_tag_green"
+        android:fontFamily="sans-serif-medium"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="4dp"
+        android:text="Football"
+        android:textColor="#10D070"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Top Right Status Info Tag (e.g. LIVE / Upcoming) -->
+    <TextView
+        android:id="@+id/matchStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/capsule_tag_red"
+        android:fontFamily="sans-serif-bold"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="4dp"
+        android:text="• LIVE"
+        android:textColor="#FF3B3B"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Teams Row Container -->
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/teamsRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/matchCategory">
 
-        <!-- Top status banner / Category indicator -->
-        <TextView
-            android:id="@+id/matchStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="#EF4444"
-            android:fontFamily="sans-serif-black"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="4dp"
-            android:text="LIVE"
-            android:textColor="#FFFFFF"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/matchCategory"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:fontFamily="sans-serif-medium"
-            android:text="Cricket"
-            android:textColor="#94A3B8"
-            android:textSize="11sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/matchStatus" />
-
-        <!-- Team 1 Section (Left Aligned) -->
+        <!-- Team 1 Horiz (Logo + Name) on the Left -->
         <LinearLayout
             android:id="@+id/team1layout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="vertical"
-            app:layout_constraintEnd_toStartOf="@id/vsText"
+            android:gravity="center_vertical|start"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/vsCircleFrame"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/matchCategory">
+            app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
                 android:id="@+id/team1Logo"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:background="@android:color/transparent"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="8dp"
                 android:contentDescription="Team 1 Logo"
-                android:scaleType="centerInside" />
+                android:scaleType="centerInside"
+                android:src="@android:drawable/ic_menu_gallery" />
 
             <TextView
                 android:id="@+id/team1Name"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
                 android:ellipsize="end"
-                android:fontFamily="sans-serif-medium"
+                android:fontFamily="sans-serif-bold"
                 android:maxLines="1"
-                android:gravity="center"
-                android:text="Team 1"
+                android:text="BAN"
                 android:textColor="#FFFFFF"
-                android:textSize="14sp" />
+                android:textSize="16sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Center VS Text -->
-        <TextView
-            android:id="@+id/vsText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-black"
-            android:text="VS"
-            android:textColor="#00FF66"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@id/team1layout"
+        <!-- VS Circular Frame in the Center -->
+        <FrameLayout
+            android:id="@+id/vsCircleFrame"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/circle_vs_green"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/team2layout"
             app:layout_constraintStart_toEndOf="@id/team1layout"
-            app:layout_constraintTop_toTopOf="@id/team1layout" />
+            app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Team 2 Section (Right Aligned) -->
+            <TextView
+                android:id="@+id/vsText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:fontFamily="sans-serif-bold"
+                android:text="vs"
+                android:textColor="#10D070"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+        <!-- Team 2 Horiz (Name + Logo) on the Right -->
         <LinearLayout
             android:id="@+id/team2layout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="vertical"
+            android:gravity="center_vertical|end"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/vsText"
-            app:layout_constraintTop_toBottomOf="@id/matchCategory">
-
-            <ImageView
-                android:id="@+id/team2Logo"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:background="@android:color/transparent"
-                android:contentDescription="Team 2 Logo"
-                android:scaleType="centerInside" />
+            app:layout_constraintStart_toEndOf="@id/vsCircleFrame"
+            app:layout_constraintTop_toTopOf="parent">
 
             <TextView
                 android:id="@+id/team2Name"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
                 android:ellipsize="end"
-                android:fontFamily="sans-serif-medium"
+                android:gravity="end"
+                android:fontFamily="sans-serif-bold"
                 android:maxLines="1"
-                android:gravity="center"
-                android:text="Team 2"
+                android:text="NZ"
                 android:textColor="#FFFFFF"
-                android:textSize="14sp" />
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/team2Logo"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="8dp"
+                android:contentDescription="Team 2 Logo"
+                android:scaleType="centerInside"
+                android:src="@android:drawable/ic_menu_gallery" />
         </LinearLayout>
-
-        <!-- Match Title / Time detail -->
-        <TextView
-            android:id="@+id/matchTitleText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:fontFamily="sans-serif"
-            android:gravity="center"
-            android:text="T20 Series - Match #1"
-            android:textColor="#94A3B8"
-            android:textSize="12sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/team1layout" />
-
-        <!-- Watch Live Premium Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnWatchLive"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginTop="14dp"
-            android:backgroundTint="#00FF66"
-            android:fontFamily="sans-serif-black"
-            android:text="WATCH LIVE"
-            android:textColor="#0F172A"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            app:cornerRadius="12dp"
-            app:icon="@android:drawable/ic_media_play"
-            app:iconGravity="textStart"
-            app:iconPadding="8dp"
-            app:iconTint="#0F172A"
-            app:layout_constraintTop_toBottomOf="@id/matchTitleText" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-</androidx.cardview.widget.CardView>
+    <!-- Bottom Footer Row (League title + Action CTA button) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/footerRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        app:layout_constraintTop_toBottomOf="@id/teamsRow">
+
+        <!-- League Subtitle Text (e.g. FIFA / Series information) -->
+        <TextView
+            android:id="@+id/matchTitleText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:maxLines="2"
+            android:text="FIFA"
+            android:textColor="#8C9390"
+            android:textSize="13sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnWatchLive"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Watch Live Play Button ("দেখুন") -->
+        <LinearLayout
+            android:id="@+id/btnWatchLive"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/pill_btn_green"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_gravity="center"
+                android:layout_marginEnd="6dp"
+                android:src="@android:drawable/ic_media_play"
+                app:tint="#05140D" />
+
+            <TextView
+                android:id="@+id/btnText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-bold"
+                android:text="দেখুন"
+                android:textColor="#05140D"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

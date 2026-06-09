@@ -43,11 +43,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var adapter: MatchAdapter
     private val matchModelList = ArrayList<MatchModel>()
+    private val allMatchesList = ArrayList<MatchModel>()
     private lateinit var requestQueue: RequestQueue
 
     // Managed from dynamic control api
     private var networkPopunderUrl = DEFAULT_POPUNDER_URL
     private var adsMasterSwitch = "ON"
+
+    private var selectedCategory = "All"
+    private var selectedTab = "Live" // "Live", "Categories", "Upcoming"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,8 +65,101 @@ class MainActivity : AppCompatActivity() {
         adapter = MatchAdapter(this, matchModelList)
         binding.recyclerViewMatches.adapter = adapter
 
+        // Set up Category Slider Click Listeners
+        binding.btnCatAll.setOnClickListener { updateCategoryFilter("All") }
+        binding.btnCatCricket.setOnClickListener { updateCategoryFilter("Cricket") }
+        binding.btnCatFootball.setOnClickListener { updateCategoryFilter("Football") }
+        binding.btnCatOthers.setOnClickListener { updateCategoryFilter("Others") }
+
+        // Set up Bottom Navigation Item Listeners
+        binding.navLive.setOnClickListener { updateTabUI("Live") }
+        binding.navCategories.setOnClickListener { updateTabUI("Categories") }
+        binding.navUpcoming.setOnClickListener { updateTabUI("Upcoming") }
+
+        // Start with Live Tab styling active
+        updateTabUI("Live")
+
         // Fetch dynamic configuration entries from hosting PHP script
         fetchMatchesAndSettings()
+    }
+
+    private fun updateCategoryFilter(categoryName: String) {
+        selectedCategory = categoryName
+        
+        // Reset category circles backgrounds
+        binding.circleCatAll.setBackgroundResource(if (selectedCategory == "All") R.drawable.circle_active else R.drawable.circle_inactive)
+        binding.circleCatCricket.setBackgroundResource(if (selectedCategory == "Cricket") R.drawable.circle_active else R.drawable.circle_inactive)
+        binding.circleCatFootball.setBackgroundResource(if (selectedCategory == "Football") R.drawable.circle_active else R.drawable.circle_inactive)
+        binding.circleCatOthers.setBackgroundResource(if (selectedCategory == "Others") R.drawable.circle_active else R.drawable.circle_inactive)
+
+        // Reset category text colors
+        binding.txtCatAll.setTextColor(if (selectedCategory == "All") 0xFF10D070.toInt() else 0xFFA0A5A2.toInt())
+        binding.txtCatCricket.setTextColor(if (selectedCategory == "Cricket") 0xFF10D070.toInt() else 0xFFA0A5A2.toInt())
+        binding.txtCatFootball.setTextColor(if (selectedCategory == "Football") 0xFF10D070.toInt() else 0xFFA0A5A2.toInt())
+        binding.txtCatOthers.setTextColor(if (selectedCategory == "Others") 0xFF10D070.toInt() else 0xFFA0A5A2.toInt())
+
+        // Icon tints
+        binding.imgCatAll.setColorFilter(if (selectedCategory == "All") 0xFF10D070.toInt() else 0xFFFFFFFF.toInt())
+        binding.imgCatCricket.setColorFilter(if (selectedCategory == "Cricket") 0xFF10D070.toInt() else 0xFFFFFFFF.toInt())
+        binding.imgCatFootball.setColorFilter(if (selectedCategory == "Football") 0xFF10D070.toInt() else 0xFFFFFFFF.toInt())
+        binding.imgCatOthers.setColorFilter(if (selectedCategory == "Others") 0xFF10D070.toInt() else 0xFFFFFFFF.toInt())
+
+        applyFilters()
+    }
+
+    private fun updateTabUI(tab: String) {
+        selectedTab = tab
+
+        // Live Tab styling
+        val isLive = tab == "Live"
+        binding.pillLive.setBackgroundResource(if (isLive) R.drawable.pill_active_nav else android.R.color.transparent)
+        binding.textLive.setTextColor(if (isLive) 0xFF10D070.toInt() else 0xFFA0A5A2.toInt())
+        binding.textLive.setTypeface(binding.textLive.typeface, if (isLive) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
+        val imgLive = binding.pillLive.getChildAt(1) as? ImageView
+        imgLive?.setColorFilter(if (isLive) 0xFF05140D.toInt() else 0xFFA0A5A2.toInt())
+
+        // Categories Tab styling
+        val isCat = tab == "Categories"
+        binding.pillCategories.setBackgroundResource(if (isCat) R.drawable.pill_active_nav else android.R.color.transparent)
+        binding.textCategories.setTextColor(if (isCat) 0xFF10D070.toInt() else 0xFFA0A5A2.toInt())
+        binding.textCategories.setTypeface(binding.textCategories.typeface, if (isCat) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
+        val imgCat = binding.pillCategories.getChildAt(0) as? ImageView
+        imgCat?.setColorFilter(if (isCat) 0xFF05140D.toInt() else 0xFFA0A5A2.toInt())
+
+        // Upcoming Tab styling
+        val isUpcoming = tab == "Upcoming"
+        binding.pillUpcoming.setBackgroundResource(if (isUpcoming) R.drawable.pill_active_nav else android.R.color.transparent)
+        binding.textUpcoming.setTextColor(if (isUpcoming) 0xFF10D070.toInt() else 0xFFA0A5A2.toInt())
+        binding.textUpcoming.setTypeface(binding.textUpcoming.typeface, if (isUpcoming) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
+        val imgUpcoming = binding.pillUpcoming.getChildAt(0) as? ImageView
+        imgUpcoming?.setColorFilter(if (isUpcoming) 0xFF05140D.toInt() else 0xFFA0A5A2.toInt())
+
+        applyFilters()
+    }
+
+    private fun applyFilters() {
+        matchModelList.clear()
+        for (match in allMatchesList) {
+            // Apply category filter
+            val matchesCategory = if (selectedCategory == "All") {
+                true
+            } else {
+                match.category.equals(selectedCategory, ignoreCase = true)
+            }
+
+            // Apply bottom tab filter
+            val matchesTab = when (selectedTab) {
+                "Live" -> true // Standard view showing all matches
+                "Upcoming" -> match.status.equals("UPCOMING", ignoreCase = true)
+                "Categories" -> true // Show general categories
+                else -> true
+            }
+
+            if (matchesCategory && matchesTab) {
+                matchModelList.add(match)
+            }
+        }
+        adapter.notifyDataSetChanged()
     }
 
     private fun fetchMatchesAndSettings() {
@@ -85,7 +182,7 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     // Dynamically fill current matches array
-                    matchModelList.clear()
+                    allMatchesList.clear()
                     val matchesArray = response.getJSONArray("matches")
                     for (i in 0 until matchesArray.length()) {
                         val obj = matchesArray.getJSONObject(i)
@@ -101,9 +198,9 @@ class MainActivity : AppCompatActivity() {
                             timeText = obj.optString("timeText", ""),
                             server1Url = obj.optString("server1Url", "")
                         )
-                        matchModelList.add(match)
+                        allMatchesList.add(match)
                     }
-                    adapter.notifyDataSetChanged()
+                    applyFilters()
 
                 } catch (e: JSONException) {
                     Log.e(TAG, "Parsing error: ${e.message}")
@@ -129,7 +226,7 @@ class MainActivity : AppCompatActivity() {
         // Wrap raw code securely inside high-performance responsive container
         val customHtml = """
             <html>
-            <body style='margin:0;padding:0;display:flex;justify-content:center;align-items:center;background:#1E293B;'>
+            <body style='margin:0;padding:0;display:flex;justify-content:center;align-items:center;background:#05140D;'>
                 $htmlScript
             </body>
             </html>
@@ -141,8 +238,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadFallbackLocalSeededData() {
-        matchModelList.clear()
-        matchModelList.add(
+        allMatchesList.clear()
+        allMatchesList.add(
             MatchModel(
                 id = 1,
                 title = "ICC World Cup Live • Super Eight Match 5",
@@ -156,7 +253,7 @@ class MainActivity : AppCompatActivity() {
                 server1Url = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" // Beautiful verification HLS stream link
             )
         )
-        matchModelList.add(
+        allMatchesList.add(
             MatchModel(
                 id = 2,
                 title = "EPL Football Derby • Premier Matches",
@@ -170,7 +267,7 @@ class MainActivity : AppCompatActivity() {
                 server1Url = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
             )
         )
-        matchModelList.add(
+        allMatchesList.add(
             MatchModel(
                 id = 3,
                 title = "T20 Series International Cup",
@@ -184,7 +281,7 @@ class MainActivity : AppCompatActivity() {
                 server1Url = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
             )
         )
-        adapter.notifyDataSetChanged()
+        applyFilters()
     }
 
     fun onMatchClicked(match: MatchModel) {
@@ -229,19 +326,22 @@ class MainActivity : AppCompatActivity() {
         // Transform standard list components inside overlay card to display sponsor message
         dialogView.findViewById<TextView>(R.id.matchStatus)?.apply {
             text = "SPONSOR AD"
-            setBackgroundColor(0xFF00FF66.toInt())
-            setTextColor(0xFF0F172A.toInt())
+            setBackgroundResource(R.drawable.capsule_tag_green)
+            setTextColor(0xFF10D070.toInt())
         }
 
         dialogView.findViewById<TextView>(R.id.matchCategory)?.apply {
+            text = "Sponsor"
+        }
+
+        dialogView.findViewById<TextView>(R.id.matchTitleText)?.apply {
             text = "Loading premium streaming links. Please support sponsors!"
         }
 
-        val btnWatchLive = dialogView.findViewById<Button>(R.id.btnWatchLive)
-        btnWatchLive?.apply {
-            text = "SKIP SPONSOR AD (3s)..."
-            isEnabled = false
-        }
+        val btnWatchLive = dialogView.findViewById<View>(R.id.btnWatchLive)
+        val btnText = dialogView.findViewById<TextView>(R.id.btnText)
+        btnWatchLive?.isEnabled = false
+        btnText?.text = "SKIP AD (3s)..."
 
         // Count down timer
         Handler(Looper.getMainLooper()).postDelayed({
@@ -291,7 +391,7 @@ class MainActivity : AppCompatActivity() {
             val category: TextView = itemView.findViewById(R.id.matchCategory)
             val logo1: ImageView = itemView.findViewById(R.id.team1Logo)
             val logo2: ImageView = itemView.findViewById(R.id.team2Logo)
-            val btnWatch: Button = itemView.findViewById(R.id.btnWatchLive)
+            val btnWatch: View = itemView.findViewById(R.id.btnWatchLive)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -305,13 +405,25 @@ class MainActivity : AppCompatActivity() {
             holder.team1.text = item.team1Name
             holder.team2.text = item.team2Name
             holder.status.text = item.status.uppercase()
-            holder.category.text = "${item.category} • ${item.timeText}"
+            holder.category.text = item.category
 
             // Customize badge backgrounds corresponding to states
             when (item.status.uppercase()) {
-                "LIVE" -> holder.status.setBackgroundColor(0xFFEF4444.toInt())
-                "UPCOMING" -> holder.status.setBackgroundColor(0xFFEAB308.toInt())
-                else -> holder.status.setBackgroundColor(0xFF3B82F6.toInt())
+                "LIVE" -> {
+                    holder.status.text = "• LIVE"
+                    holder.status.setBackgroundResource(R.drawable.capsule_tag_red)
+                    holder.status.setTextColor(0xFFFF3B3B.toInt())
+                }
+                "UPCOMING" -> {
+                    holder.status.text = "UPCOMING"
+                    holder.status.setBackgroundResource(R.drawable.capsule_tag_green)
+                    holder.status.setTextColor(0xFF10D070.toInt())
+                }
+                else -> {
+                    holder.status.text = item.status.uppercase()
+                    holder.status.setBackgroundResource(R.drawable.circle_inactive)
+                    holder.status.setTextColor(0xFFFFFFFF.toInt())
+                }
             }
 
             // High performance Glide loading with fallback placeholders
